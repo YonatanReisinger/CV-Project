@@ -16,7 +16,7 @@ def train(epochs, model, train_loader, criterion, lr, to_print = False) -> Tuple
         for data, target in train_loader:
             optimizer.zero_grad()
             output = model(data)
-            loss = criterion(output, target.unsqueeze(1))
+            loss = criterion(output, target)
             loss.backward()
             optimizer.step()
             LOSS.append(loss.item())
@@ -33,7 +33,7 @@ def accuracy(net, test_loader) -> float:
         for data, target in test_loader:
             outputs = net(data)
             outputs = outputs.squeeze()
-            predicted = (outputs > 0.5).float()
+            predicted = outputs.max(dim=1).indices
             total += target.size(0)
             correct += (predicted == target).sum().item()
     return 100 * correct / total
