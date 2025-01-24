@@ -17,6 +17,13 @@ class CNN(nn.Module):
 
         super(CNN, self).__init__()
 
+        # Check if the number of layers is consistent with the number of kernel sizes and strides
+        if len(layers) - 1 != len(kernel_sizes) or len(layers) - 1 != len(strides):
+            raise ValueError("The number of layers - 1 must be equal to the number of kernel sizes and strides")
+        # Check that the output_activation is a function
+        if output_activation is not None and not callable(output_activation):
+            raise ValueError("Output activation must be a function")
+
         # Init layers
         self.hidden = nn.ModuleList()
         for input_size, hidden_output_size, kernel_size, stride in zip(layers, layers[1:], kernel_sizes, strides):
