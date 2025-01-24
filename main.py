@@ -33,7 +33,8 @@ def experiment_architectures(layers_options: List[List[int]],
                          criterion=torch.nn.CrossEntropyLoss(),
                          batch_size=64,
                          epochs=40,
-                         lr=0.1)
+                         lr=0.1,
+                         optimizer_name="SGD")
         exp()
         exp.to_pickle()
         print(f"\n--------{exp.score}--------")
