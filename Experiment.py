@@ -14,20 +14,24 @@ def train(optimizer, epochs, model, train_loader, val_loader, criterion) -> Tupl
     VAL_LOSS = []
     val_scores = []
     models_states = []
+
     for epoch in range(epochs):
+        total_loss_in_epoch = 0
         for data, target in train_loader:
             optimizer.zero_grad()
             output = model(data)
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
-            TRAIN_LOSS.append(loss.item())
+            total_loss_in_epoch += loss.item()
 
         models_states.append(copy.deepcopy(model.state_dict()))
+        average_loss_in_epoch = total_loss_in_epoch / len(train_loader)
+        TRAIN_LOSS.append(average_loss_in_epoch)
         val_score, val_loss = accuracy(model, val_loader, criterion)
         val_scores.append(val_score)
         VAL_LOSS.append(val_loss)
-        print(f'Epoch {epoch + 1}, Train Loss: {loss.item():.4f}, Val Loss: {val_loss:.4f}, Val Accuracy : {val_score:.4f}')
+        print(f'Epoch {epoch + 1}, Train Loss: {average_loss_in_epoch:.4f}, Val Loss: {val_loss:.4f}, Val Accuracy : {val_score:.4f}')
 
     return TRAIN_LOSS, VAL_LOSS, val_scores, models_states
 

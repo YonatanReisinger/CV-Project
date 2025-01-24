@@ -10,7 +10,11 @@ import os
 def experiment_architectures(layers_options: List[List[int]],
                              output_activation_options: List[Callable],
                              kernel_sizes_options: List[List[int]],
-                             strides_options: List[List[int]]):
+                             strides_options: List[List[int]],
+                             epochs: int,
+                             optimizer_name: str,
+                             probability: float = 0.5):
+
     # Generate all possible combinations of parameters
     all_combinations = list(product(
         output_activation_options,
@@ -19,8 +23,10 @@ def experiment_architectures(layers_options: List[List[int]],
         strides_options
     ))
 
+    if probability > 1 or probability < 0:
+        raise ValueError("probability needs to be between 0 and 1")
     num_combinations = len(all_combinations)
-    sampled_combinations = random.sample(all_combinations, k=num_combinations)
+    sampled_combinations = random.sample(all_combinations, k=int(num_combinations * probability))
 
     for output_activation, layers, kernel_sizes, strides in sampled_combinations:
         print(f"Testing configuration: Layers={layers}, Kernel Sizes={kernel_sizes}, Strides={strides}, Activation={output_activation.__name__}")
@@ -32,27 +38,59 @@ def experiment_architectures(layers_options: List[List[int]],
         exp = Experiment(model=model,
                          criterion=torch.nn.CrossEntropyLoss(),
                          batch_size=64,
-                         epochs=40,
+                         epochs=epochs,
                          lr=0.1,
-                         optimizer_name="SGD")
+                         optimizer_name=optimizer_name)
         exp()
         exp.to_pickle()
         print(f"\n--------{exp.score}--------")
 
 def experiment_shallow_architectures():
     layers_options = [
-        [3, 32, 64],  # Small model: Input (RGB), 32 filters, then 64 filters
-        [3, 64, 128],  # Medium model
+        [3, 32, 64],
+        [3, 64, 128],
     ]
     output_activation_options = [torch.nn.functional.softmax]
     kernel_sizes_options = [
-        [3, 3],  # Standard 3x3 kernels
-        [5, 5],  # Larger receptive fields
+        [3, 3],
+        [5, 5],
     ]
     strides_options = [
-        [1, 2],  # First layer standard, second layer downsampling
+        [1, 2],
     ]
-    experiment_architectures(layers_options, output_activation_options, kernel_sizes_options, strides_options)
+    experiment_architectures(layers_options, output_activation_options, kernel_sizes_options, strides_options, 20, "SGD")
+
+def experiment_architectures_with_depth_4():
+    layers_options = [
+        [3, 32, 64, 128],
+        [3, 64, 128, 256],
+        [3, 64, 128, 32],
+    ]
+    output_activation_options = [torch.nn.functional.softmax]
+    kernel_sizes_options = [
+        [3, 3, 3],
+        [5, 5, 5],
+    ]
+    strides_options = [
+        [1, 1, 1],
+        [1, 2, 2],
+    ]
+    experiment_architectures(layers_options, output_activation_options, kernel_sizes_options, strides_options, 80, "Adam")
+
+def experiment_architectures_with_depth_5():
+    layers_options = [
+        [3, 32, 64, 128, 256],
+        [3, 64, 128, 256, 512],
+    ]
+    output_activation_options = [torch.nn.functional.softmax]
+    kernel_sizes_options = [
+        [5, 5, 5, 5],
+    ]
+    strides_options = [
+        [1, 1, 1, 1],
+    ]
+    experiment_architectures(layers_options, output_activation_options, kernel_sizes_options, strides_options, 100, "Adam", 1)
+
 
 def load_experiments(directory="."):
     pkl_files = [f for f in os.listdir(directory) if f.endswith(".pkl") and f.startswith("Experiment")]
@@ -68,10 +106,13 @@ def load_experiments(directory="."):
     return loaded_data
 
 def main():
-    # experiment_shallow_architectures()
-    loaded_data = load_experiments()
-    for name, data in loaded_data.items():
-        print(data)
+    experiment_architectures_with_depth_4()
+    experiment_architectures_with_depth_5()
+    # loaded_data = load_experiments()
+    # for name, data in loaded_data.items():
+    #     print(data)
 
 if __name__ == '__main__':
     main()
+    # exp = Experiment.from_pickle("Experiment_25.68_2025-01-24_23:53.pkl")
+    # print(exp)

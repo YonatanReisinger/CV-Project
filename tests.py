@@ -73,5 +73,6 @@ def test_experiment_sanity(experiment, output_activation):
     experiment.to_pickle()
     print(experiment)
     # Assertions to check the output
+    assert len(experiment.TRAIN_LOSS), f"Expected {experiment.epochs} loss scores, but got {len(experiment.TRAIN_LOSS)}"
     assert 0 <= experiment.score <= 100, f"Expected accuracy to be between 0 and 100, but got {experiment.score}"
     assert len(experiment.models_states) == experiment.epochs, f"Expected {experiment.epochs} models states, but got {len(experiment.models_states)}"
