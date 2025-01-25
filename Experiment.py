@@ -95,7 +95,7 @@ class Experiment:
         self.average_loss = None
         self.models_states = None
         if optimizer_name == "SGD":
-            self.optimizer = optim.SGD(model.parameters(), lr=lr)
+            self.optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.2)
         elif optimizer_name == "Adam":
             self.optimizer = optim.Adam(model.parameters(), lr=lr)
         else:
@@ -119,7 +119,7 @@ class Experiment:
             "Convolution Activations": str([act.__name__ for act in self.model.activations]),
             "Output Function": self.model.output_activation.__name__,
             "Output Size": self.model.output_size,
-            # "Optimizer": self.optimizer.__class__.__name__,
+            "Optimizer": self.optimizer.__class__.__name__,
             "Criterion": self.criterion.__class__.__name__,
             "Epochs": self.epochs,
             "Learning Rate": self.lr,

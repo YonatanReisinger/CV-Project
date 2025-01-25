@@ -45,6 +45,16 @@ def test_invalid_strides(model):
                     hidden_activations=[torch.relu, torch.relu, torch.relu])
 
 
+def test_invalid_experiment(model):
+    with pytest.raises(ValueError):
+        exp = Experiment(model=model,
+                         criterion=torch.nn.CrossEntropyLoss(),
+                         batch_size=64,
+                         epochs=2,
+                         lr=0.01,
+                         optimizer_name="adam")
+
+
 @pytest.mark.parametrize("output_size", [1, 10])
 @pytest.mark.parametrize("output_activation", [torch.softmax, torch.sigmoid])
 def test_CNN_with_sigmoid(train_dataloader, model, output_size, output_activation):
