@@ -145,19 +145,7 @@ def main():
 
 
 if __name__ == '__main__':
-    model = CNN(hidden_convolution_layers=[3, 32, 64, 128],
-                kernel_sizes=[5, 5, 5],
-                strides=[1, 2, 2],
-                hidden_fully_connected_layers=[None, 1000, 1000, 1000, 1000],
-                output_size=10,
-                output_activation=None,
-                paddings=[2, 2, 2])
-    dataset = datasets.CIFAR10(root='./data', train=True, transform=transforms.ToTensor())
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=64, shuffle=True)
-    images, labels = next(iter(dataloader))
-    output = model(images)
-    print(3)
-    # main()
+    main()
     # experiment_shallow_architectures()
     # exp = Experiment.from_pickle("Experiment_25.68_2025-01-24_23:53.pkl")
     # print(exp)

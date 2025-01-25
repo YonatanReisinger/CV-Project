@@ -83,7 +83,6 @@ def test_experiment_sanity(output_activation):
     model = CNN(convolution_layers=[3, 32, 64, 128],
                 kernel_sizes=[5, 5, 5],
                 strides=[1, 2, 2],
-                fully_connected_layers=[None, 1000, 1000, 1000, 1000, 1000],
                 output_size=10,
                 output_activation=output_activation,
                 paddings=[2,2,2])
