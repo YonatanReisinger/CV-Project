@@ -37,7 +37,7 @@ def experiment_architectures(layers_options: List[List[int]],
                     output_size=10)
         exp = Experiment(model=model,
                          criterion=torch.nn.CrossEntropyLoss(),
-                         batch_size=64,
+                         batch_size=100,
                          epochs=epochs,
                          lr=0.1,
                          optimizer_name=optimizer_name)
@@ -64,7 +64,6 @@ def experiment_architectures_with_depth_4():
     layers_options = [
         [3, 32, 64, 128],
         [3, 64, 128, 256],
-        [3, 64, 128, 32],
     ]
     output_activation_options = [torch.nn.functional.softmax]
     kernel_sizes_options = [
@@ -75,7 +74,7 @@ def experiment_architectures_with_depth_4():
         [1, 1, 1],
         [1, 2, 2],
     ]
-    experiment_architectures(layers_options, output_activation_options, kernel_sizes_options, strides_options, 80, "Adam")
+    experiment_architectures(layers_options, output_activation_options, kernel_sizes_options, strides_options, 50, "SGD")
 
 def experiment_architectures_with_depth_5():
     layers_options = [
@@ -89,11 +88,11 @@ def experiment_architectures_with_depth_5():
     strides_options = [
         [1, 1, 1, 1],
     ]
-    experiment_architectures(layers_options, output_activation_options, kernel_sizes_options, strides_options, 100, "Adam", 1)
+    experiment_architectures(layers_options, output_activation_options, kernel_sizes_options, strides_options, 60, "SGD", 1)
 
 
 def load_experiments(directory="."):
-    pkl_files = [f for f in os.listdir(directory) if f.endswith(".pkl") and f.startswith("Experiment")]
+    pkl_files = [f for f in os.listdir(directory) if f.endswith(".pkl") and f.startswith("Experiment") and "2025-01-25" in f]
     loaded_data = {}
 
     for pkl_file in pkl_files:
@@ -106,13 +105,14 @@ def load_experiments(directory="."):
     return loaded_data
 
 def main():
-    experiment_architectures_with_depth_4()
-    experiment_architectures_with_depth_5()
-    # loaded_data = load_experiments()
-    # for name, data in loaded_data.items():
-    #     print(data)
+    # experiment_architectures_with_depth_4()
+    # experiment_architectures_with_depth_5()
+    loaded_data = load_experiments()
+    for name, data in loaded_data.items():
+        print(data)
 
 if __name__ == '__main__':
     main()
+    # experiment_shallow_architectures()
     # exp = Experiment.from_pickle("Experiment_25.68_2025-01-24_23:53.pkl")
     # print(exp)

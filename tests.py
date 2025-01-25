@@ -12,7 +12,7 @@ def train_dataloader():
 
 @pytest.fixture()
 def model():
-    model = CNN(layers=[3, 10, 20, 40], kernel_sizes=[3, 5, 5], strides=[1, 2, 2], output_size=10)
+    model = CNN(layers=[3, 32, 64, 128], kernel_sizes=[3, 5, 5], strides=[1, 2, 2], output_size=10)
     return model
 
 @pytest.fixture()
@@ -45,25 +45,27 @@ def test_invalid_strides(model):
                     hidden_activations=[torch.relu, torch.relu, torch.relu])
 
 
-@pytest.mark.parametrize("output_size", [1, 10])
-def test_CNN_with_sigmoid(train_dataloader, model, output_size):
-    images, labels = next(iter(train_dataloader))
-    model.output_size = output_size
-    model.output_activation = torch.sigmoid
-    output = model(images)
-    # Assertions to check the output
-    assert output.shape == (64, output_size), f"Expected output shape (64, {output_size}), but got {output.shape}"
-    assert (0 <= output).all() and (output <= 1).all(), "Output values should be between 0 and 1 (after sigmoid)"
+def test_invalid_experiment(model):
+    with pytest.raises(ValueError):
+        exp = Experiment(model=model,
+                         criterion=torch.nn.CrossEntropyLoss(),
+                         batch_size=64,
+                         epochs=2,
+                         lr=0.01,
+                         optimizer_name="adam")
+
 
 @pytest.mark.parametrize("output_size", [1, 10])
-def test_CNN_ten_output_with_softmax(train_dataloader, model, output_size):
+@pytest.mark.parametrize("output_activation", [torch.softmax, torch.sigmoid])
+def test_CNN_with_sigmoid(train_dataloader, model, output_size, output_activation):
     images, labels = next(iter(train_dataloader))
-    model.output_activation = torch.softmax
     model.output_size = output_size
+    model.output_activation = output_activation
     output = model(images)
     # Assertions to check the output
+    assert len(model.hidden) == 3
     assert output.shape == (64, output_size), f"Expected output shape (64, {output_size}), but got {output.shape}"
-    assert (0 <= output).all() and (output <= 1).all(), "Output values should be between 0 and 1 (after softmax)"
+    assert (0 <= output).all() and (output <= 1).all(), "Output values should be between 0 and 1 (after sigmoid)"
 
 @pytest.mark.parametrize("output_activation", [torch.softmax, torch.sigmoid])
 def test_experiment_sanity(experiment, output_activation):
