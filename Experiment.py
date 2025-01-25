@@ -76,7 +76,7 @@ class Experiment:
             val_size = int(len(dataset) * 0.1)
             train_size = len(dataset) - val_size
             train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-
+            # TODO: Try shuffle=False here after !!!!!!!
             self.train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
             # TODO:before it was True, change after to True here as well !!!!!!!!!!!!!!
             self.val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
