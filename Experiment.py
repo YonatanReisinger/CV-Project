@@ -70,8 +70,8 @@ class Experiment:
 
         self.model = model
         if train is None or val is None or test is None:
-            dataset = datasets.CIFAR10(root='./data', train=True, transform=transforms.ToTensor())
-            test_dataset = datasets.CIFAR10(root='./data', train=False, transform=transforms.ToTensor())
+            dataset = datasets.CIFAR10(root='./data', train=True, transform=transforms.ToTensor(), download=True)
+            test_dataset = datasets.CIFAR10(root='./data', train=False, transform=transforms.ToTensor(), download=True)
 
             # Split training dataset into train and validation
             val_size = int(len(dataset) * 0.1)

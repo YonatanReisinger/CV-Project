@@ -11,6 +11,7 @@ def experiment_architectures(layers_options: List[List[int]],
                              output_activation_options: List[Callable | None],
                              kernel_sizes_options: List[List[int]],
                              strides_options: List[List[int]],
+                             paddings_options: List[List[int]],
                              epochs: int,
                              optimizer_name: str,
                              lr: float,
@@ -22,7 +23,8 @@ def experiment_architectures(layers_options: List[List[int]],
         output_activation_options,
         layers_options,
         kernel_sizes_options,
-        strides_options
+        strides_options,
+        paddings_options
     ))
 
     if probability > 1 or probability < 0:
@@ -30,12 +32,13 @@ def experiment_architectures(layers_options: List[List[int]],
     num_combinations = len(all_combinations)
     sampled_combinations = random.sample(all_combinations, k=int(num_combinations * probability))
 
-    for output_activation, layers, kernel_sizes, strides in sampled_combinations:
+    for output_activation, layers, kernel_sizes, strides, paddings in sampled_combinations:
         print(f"Testing configuration: Layers={layers}, Kernel Sizes={kernel_sizes}, Strides={strides}, Activation={output_activation.__name__ if output_activation else None}, Optimizer={optimizer_name}")
         model = CNN(convolution_layers=layers,
                     output_activation=output_activation,
                     kernel_sizes=kernel_sizes,
                     strides=strides,
+                    paddings=paddings,
                     output_size=10)
         exp = Experiment(model=model,
                          criterion=torch.nn.CrossEntropyLoss(),
