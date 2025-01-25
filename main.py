@@ -142,7 +142,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    exp = Experiment.from_pickle("Experiment_4_68.99_2025-01-25_19:06_SGD.pkl")
+    exp.plot_loss()
+    # main()
     # experiment_shallow_architectures()
     # exp = Experiment.from_pickle("Experiment_25.68_2025-01-24_23:53.pkl")
     # print(exp)

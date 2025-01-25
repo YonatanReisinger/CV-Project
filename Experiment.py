@@ -8,6 +8,7 @@ import torch
 import pickle
 import datetime
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def train(optimizer, epochs, model, train_loader, val_loader, criterion) -> Tuple[List[float], List[float], List[float], List[Dict[str, torch.Tensor]]]:
     TRAIN_LOSS = []
@@ -114,11 +115,13 @@ class Experiment:
         # retrieve kernel sizes and stride
         kernel_sizes = [layer.kernel_size[0] for layer in self.model.hidden]
         strides = [layer.stride[0] for layer in self.model.hidden]
+        paddings = [layer.padding[0] for layer in self.model.hidden]
         # Prepare data for DataFrame
         data = {
             "Convolution Layers": str(layers),
             "Kernels Sizes": str(kernel_sizes),
             "Strides": str(strides),
+            "Paddings": str(paddings),
             "Convolution Activations": str([act.__name__ for act in self.model.activations]),
             "Output Function": self.model.output_activation.__name__ if self.model.output_activation else None,
             "Output Size": self.model.output_size,
@@ -144,6 +147,25 @@ class Experiment:
         result += "   --- Final Score ---\n"
         result += f"{f'{self.score:.2f}' if self.score is not None else 'Not Evaluated'}"
         return result
+
+    def plot_loss(self):
+        """
+        Plots the training and validation loss across epochs.
+        """
+        if self.TRAIN_LOSS is None or self.VAL_LOSS is None:
+            print("Training and validation loss data are not available.")
+            return
+
+        epochs = range(1, self.epochs + 1)
+        plt.figure(figsize=(10, 6))
+        plt.plot(epochs, self.TRAIN_LOSS, marker='o', color='blue', label='Training Loss')
+        plt.plot(epochs, self.VAL_LOSS, marker='o', color='orange', label='Validation Loss')
+        plt.title("Training and Validation Loss Across Epochs")
+        plt.xlabel("Epoch")
+        plt.ylabel(f"{self.criterion.__class__.__name__}")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
     def to_pickle(self, file_path: str = None) -> None:
         if file_path is None:
