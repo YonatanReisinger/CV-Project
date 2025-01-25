@@ -8,6 +8,7 @@ import torch
 import pickle
 import datetime
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def train(optimizer, epochs, model, train_loader, val_loader, criterion) -> Tuple[List[float], List[float], List[float], List[Dict[str, torch.Tensor]]]:
     TRAIN_LOSS = []
@@ -18,6 +19,7 @@ def train(optimizer, epochs, model, train_loader, val_loader, criterion) -> Tupl
     for epoch in range(epochs):
         total_loss_in_epoch = 0
         for data, target in train_loader:
+            model.train()
             optimizer.zero_grad()
             output = model(data)
             loss = criterion(output, target)
@@ -51,7 +53,7 @@ def accuracy(net, test_loader, criterion) -> Tuple[float, float]:
             total_loss += criterion(outputs, target).item()
     average_loss = total_loss / len(test_loader)
 
-    return 100 * correct / total, average_loss
+    return 100 * (correct / total), average_loss
 
 class Experiment:
     def __init__(self,
@@ -61,20 +63,21 @@ class Experiment:
                  epochs: int,
                  lr: float,
                  optimizer_name: str,
+                 momentum: float = 0,
                  train: DataLoader=None,
                  val: DataLoader = None,
                  test: DataLoader=None):
 
         self.model = model
         if train is None or val is None or test is None:
-            dataset = datasets.CIFAR10(root='./data', train=True, transform=transforms.ToTensor())
-            test_dataset = datasets.CIFAR10(root='./data', train=False, transform=transforms.ToTensor())
+            dataset = datasets.CIFAR10(root='./data', train=True, transform=transforms.ToTensor(), download=True)
+            test_dataset = datasets.CIFAR10(root='./data', train=False, transform=transforms.ToTensor(), download=True)
 
             # Split training dataset into train and validation
             val_size = int(len(dataset) * 0.1)
             train_size = len(dataset) - val_size
             train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-
+            # TODO: Try shuffle=False here after !!!!!!!
             self.train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
             # TODO:before it was True, change after to True here as well !!!!!!!!!!!!!!
             self.val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
@@ -86,6 +89,7 @@ class Experiment:
 
         self.criterion = criterion
         self.lr = lr
+        self.momentum = momentum
         self.batch_size = batch_size
         self.epochs = epochs
         self.TRAIN_LOSS = None
@@ -95,7 +99,7 @@ class Experiment:
         self.average_loss = None
         self.models_states = None
         if optimizer_name == "SGD":
-            self.optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.2)
+            self.optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
         elif optimizer_name == "Adam":
             self.optimizer = optim.Adam(model.parameters(), lr=lr)
         else:
@@ -111,15 +115,18 @@ class Experiment:
         # retrieve kernel sizes and stride
         kernel_sizes = [layer.kernel_size[0] for layer in self.model.hidden]
         strides = [layer.stride[0] for layer in self.model.hidden]
+        paddings = [layer.padding[0] for layer in self.model.hidden]
         # Prepare data for DataFrame
         data = {
             "Convolution Layers": str(layers),
             "Kernels Sizes": str(kernel_sizes),
             "Strides": str(strides),
+            "Paddings": str(paddings),
             "Convolution Activations": str([act.__name__ for act in self.model.activations]),
-            "Output Function": self.model.output_activation.__name__,
+            "Output Function": self.model.output_activation.__name__ if self.model.output_activation else None,
             "Output Size": self.model.output_size,
             "Optimizer": self.optimizer.__class__.__name__,
+            "Momentum": self.momentum,
             "Criterion": self.criterion.__class__.__name__,
             "Epochs": self.epochs,
             "Learning Rate": self.lr,
@@ -141,12 +148,31 @@ class Experiment:
         result += f"{f'{self.score:.2f}' if self.score is not None else 'Not Evaluated'}"
         return result
 
+    def plot_loss(self):
+        """
+        Plots the training and validation loss across epochs.
+        """
+        if self.TRAIN_LOSS is None or self.VAL_LOSS is None:
+            print("Training and validation loss data are not available.")
+            return
+
+        epochs = range(1, self.epochs + 1)
+        plt.figure(figsize=(10, 6))
+        plt.plot(epochs, self.TRAIN_LOSS, marker='o', color='blue', label='Training Loss')
+        plt.plot(epochs, self.VAL_LOSS, marker='o', color='orange', label='Validation Loss')
+        plt.title("Training and Validation Loss Across Epochs")
+        plt.xlabel("Epoch")
+        plt.ylabel(f"{self.criterion.__class__.__name__}")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
     def to_pickle(self, file_path: str = None) -> None:
         if file_path is None:
             # Generate file name with the class name, current date-time, and the score
             current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M")
             score_str = f"_{self.score:.2f}" if hasattr(self, 'score') and self.score is not None else ""
-            file_path = f"{self.__class__.__name__}{score_str}_{current_time}.pkl"
+            file_path = f"{self.__class__.__name__}{score_str}_{current_time}_{self.optimizer.__class__.__name__}.pkl"
 
         with open(file_path, 'wb') as file:
             pickle.dump(self, file)
