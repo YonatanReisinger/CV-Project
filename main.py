@@ -11,8 +11,8 @@ def experiment_architectures(layers_options: List[List[int]],
                              output_activation_options: List[Callable | None],
                              kernel_sizes_options: List[List[int]],
                              strides_options: List[List[int]],
-                             optimizer_options: List[str],
                              epochs: int,
+                             optimizer_name: str,
                              momentum: float = 0,
                              probability: float = 0.5):
 
@@ -21,8 +21,7 @@ def experiment_architectures(layers_options: List[List[int]],
         output_activation_options,
         layers_options,
         kernel_sizes_options,
-        strides_options,
-        optimizer_options
+        strides_options
     ))
 
     if probability > 1 or probability < 0:
@@ -30,7 +29,7 @@ def experiment_architectures(layers_options: List[List[int]],
     num_combinations = len(all_combinations)
     sampled_combinations = random.sample(all_combinations, k=int(num_combinations * probability))
 
-    for output_activation, layers, kernel_sizes, strides, optimizer_name in sampled_combinations:
+    for output_activation, layers, kernel_sizes, strides in sampled_combinations:
         print(f"Testing configuration: Layers={layers}, Kernel Sizes={kernel_sizes}, Strides={strides}, Activation={output_activation.__name__ if output_activation else None}, Optimizer={optimizer_name}")
         model = CNN(layers=layers,
                     output_activation=output_activation,
@@ -78,7 +77,7 @@ def experiment_architectures_with_depth_4():
                              output_activation_options=output_activation_options,
                              kernel_sizes_options=kernel_sizes_options,
                              strides_options=strides_options,
-                             optimizer_options=["SGD", "Adam"],
+                             optimizer_name="SGD",
                              epochs = 50,
                              probability = 1)
 
