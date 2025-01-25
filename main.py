@@ -8,11 +8,12 @@ from itertools import product
 import os
 
 def experiment_architectures(layers_options: List[List[int]],
-                             output_activation_options: List[Callable],
+                             output_activation_options: List[Callable | None],
                              kernel_sizes_options: List[List[int]],
                              strides_options: List[List[int]],
+                             optimizer_options: List[str],
                              epochs: int,
-                             optimizer_name: str,
+                             momentum: float = 0,
                              probability: float = 0.5):
 
     # Generate all possible combinations of parameters
@@ -20,7 +21,8 @@ def experiment_architectures(layers_options: List[List[int]],
         output_activation_options,
         layers_options,
         kernel_sizes_options,
-        strides_options
+        strides_options,
+        optimizer_options
     ))
 
     if probability > 1 or probability < 0:
@@ -28,8 +30,8 @@ def experiment_architectures(layers_options: List[List[int]],
     num_combinations = len(all_combinations)
     sampled_combinations = random.sample(all_combinations, k=int(num_combinations * probability))
 
-    for output_activation, layers, kernel_sizes, strides in sampled_combinations:
-        print(f"Testing configuration: Layers={layers}, Kernel Sizes={kernel_sizes}, Strides={strides}, Activation={output_activation.__name__}")
+    for output_activation, layers, kernel_sizes, strides, optimizer_name in sampled_combinations:
+        print(f"Testing configuration: Layers={layers}, Kernel Sizes={kernel_sizes}, Strides={strides}, Activation={output_activation.__name__ if output_activation else None}, Optimizer={optimizer_name}")
         model = CNN(layers=layers,
                     output_activation=output_activation,
                     kernel_sizes=kernel_sizes,
@@ -37,9 +39,10 @@ def experiment_architectures(layers_options: List[List[int]],
                     output_size=10)
         exp = Experiment(model=model,
                          criterion=torch.nn.CrossEntropyLoss(),
-                         batch_size=100,
+                         batch_size=64,
                          epochs=epochs,
-                         lr=0.1,
+                         lr=0.01,
+                         momentum=momentum,
                          optimizer_name=optimizer_name)
         exp()
         exp.to_pickle()
@@ -63,18 +66,21 @@ def experiment_shallow_architectures():
 def experiment_architectures_with_depth_4():
     layers_options = [
         [3, 32, 64, 128],
-        [3, 64, 128, 256],
     ]
-    output_activation_options = [torch.nn.functional.softmax]
+    output_activation_options = [None]
     kernel_sizes_options = [
-        [3, 3, 3],
-        [5, 5, 5],
+        [3, 5, 5],
     ]
     strides_options = [
-        [1, 1, 1],
         [1, 2, 2],
     ]
-    experiment_architectures(layers_options, output_activation_options, kernel_sizes_options, strides_options, 50, "SGD")
+    experiment_architectures(layers_options=layers_options,
+                             output_activation_options=output_activation_options,
+                             kernel_sizes_options=kernel_sizes_options,
+                             strides_options=strides_options,
+                             optimizer_options=["SGD", "Adam"],
+                             epochs = 50,
+                             probability = 1)
 
 def experiment_architectures_with_depth_5():
     layers_options = [
@@ -105,11 +111,11 @@ def load_experiments(directory="."):
     return loaded_data
 
 def main():
-    # experiment_architectures_with_depth_4()
+    experiment_architectures_with_depth_4()
     # experiment_architectures_with_depth_5()
-    loaded_data = load_experiments()
-    for name, data in loaded_data.items():
-        print(data)
+    # loaded_data = load_experiments()
+    # for name, data in loaded_data.items():
+    #     print(data)
 
 if __name__ == '__main__':
     main()

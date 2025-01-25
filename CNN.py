@@ -5,7 +5,6 @@ from typing import List, Callable
 class CNN(nn.Module):
 
     DEFAULT_HIDDEN_ACTIVATION_FUNC = torch.relu
-    DEFAULT_OUTPUT_ACTIVATION_FUNC = torch.sigmoid
 
     def __init__(self,
                  layers: List[int],
@@ -28,16 +27,16 @@ class CNN(nn.Module):
         self.hidden = nn.ModuleList()
         for input_size, hidden_output_size, kernel_size, stride in zip(layers, layers[1:], kernel_sizes, strides):
             self.hidden.append(nn.Conv2d(in_channels=input_size, out_channels=hidden_output_size, kernel_size=kernel_size, stride=stride))
-        self.fully_connected_layer = None # Placeholder for the fully connected layer, initialized dynamically
+        self.fully_connected_layer_1 = None # Placeholder for the fully connected layer, initialized dynamically
+
+
         # Initialize hidden activation functions with a default if not provided
         if hidden_activations is None:
             hidden_activations = [self.DEFAULT_HIDDEN_ACTIVATION_FUNC] * (len(layers) - 1)
         elif len(hidden_activations) != len(layers) - 1:
             raise ValueError(f"Number of activation functions must be equal to {len(layers) - 1}")
         self.activations = hidden_activations
-        # Initialize output activation function
-        if output_activation is None:
-            output_activation = self.DEFAULT_OUTPUT_ACTIVATION_FUNC
+
         self.output_activation = output_activation
         self.output_size = output_size
 
@@ -45,13 +44,17 @@ class CNN(nn.Module):
         for convolution, activation in zip(self.hidden, self.activations):
             x = activation(convolution(x))
 
-        if self.fully_connected_layer is None:
+        if self.fully_connected_layer_1 is None:
             flattened_size = x.view(x.size(0), -1).size(1)
-            self.fully_connected_layer = nn.Linear(flattened_size, self.output_size)
+            self.fully_connected_layer_1 = nn.Linear(flattened_size, self.output_size)
         x = x.view(x.size(0), -1)
-        x = self.fully_connected_layer(x)
+        x = self.fully_connected_layer_1(x)
 
-        if getattr(self.output_activation, "__name__", None) == "softmax":
+        if self.output_activation is None:
+            return x
+        elif getattr(self.output_activation, "__name__", None) == "softmax":
             return self.output_activation(x, dim=1)
-        else:
+        elif getattr(self.output_activation, "__name__", None) == "sigmoid":
             return self.output_activation(x)
+        else:
+            raise ValueError("Output function should be softmax, sigmoid or without any output function")

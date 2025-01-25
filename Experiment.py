@@ -18,6 +18,7 @@ def train(optimizer, epochs, model, train_loader, val_loader, criterion) -> Tupl
     for epoch in range(epochs):
         total_loss_in_epoch = 0
         for data, target in train_loader:
+            model.train()
             optimizer.zero_grad()
             output = model(data)
             loss = criterion(output, target)
@@ -51,7 +52,7 @@ def accuracy(net, test_loader, criterion) -> Tuple[float, float]:
             total_loss += criterion(outputs, target).item()
     average_loss = total_loss / len(test_loader)
 
-    return 100 * correct / total, average_loss
+    return 100 * (correct / total), average_loss
 
 class Experiment:
     def __init__(self,
@@ -61,6 +62,7 @@ class Experiment:
                  epochs: int,
                  lr: float,
                  optimizer_name: str,
+                 momentum: float = 0,
                  train: DataLoader=None,
                  val: DataLoader = None,
                  test: DataLoader=None):
@@ -86,6 +88,7 @@ class Experiment:
 
         self.criterion = criterion
         self.lr = lr
+        self.momentum = momentum
         self.batch_size = batch_size
         self.epochs = epochs
         self.TRAIN_LOSS = None
@@ -95,7 +98,7 @@ class Experiment:
         self.average_loss = None
         self.models_states = None
         if optimizer_name == "SGD":
-            self.optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.2)
+            self.optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
         elif optimizer_name == "Adam":
             self.optimizer = optim.Adam(model.parameters(), lr=lr)
         else:
@@ -117,9 +120,10 @@ class Experiment:
             "Kernels Sizes": str(kernel_sizes),
             "Strides": str(strides),
             "Convolution Activations": str([act.__name__ for act in self.model.activations]),
-            "Output Function": self.model.output_activation.__name__,
+            "Output Function": self.model.output_activation.__name__ if self.model.output_activation else None,
             "Output Size": self.model.output_size,
             "Optimizer": self.optimizer.__class__.__name__,
+            "Momentum": self.momentum,
             "Criterion": self.criterion.__class__.__name__,
             "Epochs": self.epochs,
             "Learning Rate": self.lr,
@@ -146,7 +150,7 @@ class Experiment:
             # Generate file name with the class name, current date-time, and the score
             current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M")
             score_str = f"_{self.score:.2f}" if hasattr(self, 'score') and self.score is not None else ""
-            file_path = f"{self.__class__.__name__}{score_str}_{current_time}.pkl"
+            file_path = f"{self.__class__.__name__}{score_str}_{current_time}_{self.optimizer.__class__.__name__}.pkl"
 
         with open(file_path, 'wb') as file:
             pickle.dump(self, file)

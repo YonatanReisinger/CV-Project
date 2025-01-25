@@ -56,7 +56,7 @@ def test_invalid_experiment(model):
 
 
 @pytest.mark.parametrize("output_size", [1, 10])
-@pytest.mark.parametrize("output_activation", [torch.softmax, torch.sigmoid])
+@pytest.mark.parametrize("output_activation", [torch.softmax, None])
 def test_CNN_with_sigmoid(train_dataloader, model, output_size, output_activation):
     images, labels = next(iter(train_dataloader))
     model.output_size = output_size
@@ -65,14 +65,15 @@ def test_CNN_with_sigmoid(train_dataloader, model, output_size, output_activatio
     # Assertions to check the output
     assert len(model.hidden) == 3
     assert output.shape == (64, output_size), f"Expected output shape (64, {output_size}), but got {output.shape}"
-    assert (0 <= output).all() and (output <= 1).all(), "Output values should be between 0 and 1 (after sigmoid)"
+    if output_activation:
+        assert (0 <= output).all() and (output <= 1).all(), "Output values should be between 0 and 1 (after softmax or sigmoid)"
 
-@pytest.mark.parametrize("output_activation", [torch.softmax, torch.sigmoid])
+@pytest.mark.parametrize("output_activation", [torch.softmax, None])
 def test_experiment_sanity(experiment, output_activation):
     experiment.model.output_activation = output_activation
     experiment.model.output_size = 10
     experiment()
-    experiment.to_pickle()
+    experiment.to_pickle(f"test_{output_activation.__name__ if output_activation else "None"}")
     print(experiment)
     # Assertions to check the output
     assert len(experiment.TRAIN_LOSS), f"Expected {experiment.epochs} loss scores, but got {len(experiment.TRAIN_LOSS)}"
