@@ -71,7 +71,7 @@ class Experiment:
             test_dataset = datasets.CIFAR10(root='./data', train=False, transform=transforms.ToTensor())
 
             # Split training dataset into train and validation
-            val_size = int(len(dataset) * 0.2)
+            val_size = int(len(dataset) * 0.1)
             train_size = len(dataset) - val_size
             train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
 
