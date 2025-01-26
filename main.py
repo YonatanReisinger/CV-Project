@@ -235,7 +235,7 @@ def experiment5_5():
     exp = Experiment(model=model,
                      criterion=torch.nn.CrossEntropyLoss(),
                      batch_size=100,
-                     epochs=200,
+                     epochs=50,
                      lr=0.2,
                      momentum=0.2,
                      optimizer_name="SGD")
@@ -254,6 +254,6 @@ def main():
 if __name__ == '__main__':
     main()
     # experiment_shallow_architectures()
-    # exp = Experiment.from_pickle("Experiment_78.54_2025-01-26_02:03_SGD.pkl")
+    # exp = Experiment.from_pickle("Experiment_5_78.54_2025-01-26_02:03_SGD.pkl")
     # exp.plot_loss()
     # print(exp)
