@@ -139,13 +139,121 @@ def load_experiments_and_print():
     for name, data in loaded_data.items():
         print(data)
 
+def experiment5():
+    model = CNN(convolution_layers=[3, 32, 64, 128],
+                kernel_sizes=[5, 5, 5],
+                strides=[1, 2, 2],
+                paddings=[2, 2, 2],
+                max_pool_kernel_sizes=[2, 2, 2],
+                output_size=10,
+                p_conv=0.2,
+                p_fc=0.5)
+    exp = Experiment(model=model,
+                     criterion=torch.nn.CrossEntropyLoss(),
+                     batch_size=100,
+                     epochs=100,
+                     lr=0.1,
+                     momentum=0.2,
+                     optimizer_name="SGD")
+
+    exp()
+    exp.to_pickle()
+    print(exp)
+
+def experiment5_2():
+    model = CNN(convolution_layers=[3, 32, 64, 128],
+                kernel_sizes=[5, 5, 5],
+                strides=[1, 2, 2],
+                paddings=[2, 2, 2],
+                max_pool_kernel_sizes=[2, 2, 2],
+                output_size=10,
+                p_conv=0.2,
+                p_fc=0.2)
+    exp = Experiment(model=model,
+                     criterion=torch.nn.CrossEntropyLoss(),
+                     batch_size=100,
+                     epochs=200,
+                     lr=0.1,
+                     momentum=0.2,
+                     optimizer_name="SGD")
+
+    exp()
+    exp.to_pickle()
+    print(exp)
+
+def experiment5_3():
+    model = CNN(convolution_layers=[3, 32, 64, 128],
+                kernel_sizes=[5, 5, 5],
+                strides=[1, 1, 1],
+                paddings=[2, 2, 2],
+                max_pool_kernel_sizes=[2, 2, 2],
+                output_size=10,
+                p_conv=0.2,
+                p_fc=0.5)
+    exp = Experiment(model=model,
+                     criterion=torch.nn.CrossEntropyLoss(),
+                     batch_size=100,
+                     epochs=200,
+                     lr=0.1,
+                     momentum=0.2,
+                     optimizer_name="SGD")
+
+    exp()
+    exp.to_pickle()
+    print(exp)
+
+def experiment5_4():
+    model = CNN(convolution_layers=[3, 32, 64, 128],
+                kernel_sizes=[5, 5, 5],
+                strides=[1, 2, 2],
+                paddings=[2, 2, 2],
+                max_pool_kernel_sizes=[2, 2, 2],
+                output_size=10,
+                p_conv=0.01,
+                p_fc=0.2)
+    exp = Experiment(model=model,
+                     criterion=torch.nn.CrossEntropyLoss(),
+                     batch_size=100,
+                     epochs=200,
+                     lr=0.1,
+                     momentum=0.2,
+                     optimizer_name="SGD")
+
+    exp()
+    exp.to_pickle()
+    print(exp)
+
+def experiment5_5():
+    model = CNN(convolution_layers=[3, 32, 64, 128],
+                kernel_sizes=[5, 5, 5],
+                strides=[1, 2, 2],
+                paddings=[2, 2, 2],
+                max_pool_kernel_sizes=[2, 2, 2],
+                output_size=10,
+                p_conv=0.2,
+                p_fc=0.2)
+    exp = Experiment(model=model,
+                     criterion=torch.nn.CrossEntropyLoss(),
+                     batch_size=100,
+                     epochs=200,
+                     lr=0.2,
+                     momentum=0.2,
+                     optimizer_name="SGD")
+
+    exp()
+    exp.to_pickle()
+    print(exp)
+
 def main():
-    # experiment_architectures_with_depth_4_new()
-    load_experiments_and_print()
+    experiment5_2()
+    experiment5_3()
+    experiment5_4()
+    experiment5_5()
 
 
 if __name__ == '__main__':
     main()
     # experiment_shallow_architectures()
-    # exp = Experiment.from_pickle("Experiment_25.68_2025-01-24_23:53.pkl")
+    # exp = Experiment.from_pickle("Experiment_78.54_2025-01-26_02:03_SGD.pkl")
+    # exp.plot_loss()
     # print(exp)

@@ -12,7 +12,7 @@ def train_dataloader():
 
 @pytest.fixture()
 def model():
-    model = CNN(convolution_layers=[3, 32, 64, 128], kernel_sizes=[3, 5, 5], strides=[1, 2, 2], output_size=10, paddings=[2,2,2])
+    model = CNN(convolution_layers=[3, 32, 64, 128], kernel_sizes=[3, 5, 5], strides=[1, 2, 2], output_size=10, paddings=[2,2,2], max_pool_kernel_sizes=[2,2,2])
     return model
 
 def test_invalid_hidden_activations_number(model):
@@ -22,7 +22,8 @@ def test_invalid_hidden_activations_number(model):
                     strides=[1, 2, 2],
                     output_size=10,
                     hidden_activations=[torch.relu, torch.relu],
-                    paddings=[2,2,2])
+                    paddings=[2,2,2],
+                    max_pool_kernel_sizes=[2,2,2])
 
 def test_invalid_kernel_sizes(model):
     with pytest.raises(ValueError):
@@ -31,7 +32,8 @@ def test_invalid_kernel_sizes(model):
                     strides=[1, 2, 2],
                     output_size=10,
                     hidden_activations=[torch.relu, torch.relu, torch.relu],
-                    paddings=[2,2,2])
+                    paddings=[2,2,2],
+                    max_pool_kernel_sizes=[2,2,2])
 
 def test_invalid_strides(model):
     with pytest.raises(ValueError):
@@ -40,7 +42,8 @@ def test_invalid_strides(model):
                     strides=[1, 2],
                     output_size=10,
                     hidden_activations=[torch.relu, torch.relu, torch.relu],
-                    paddings=[2,2,2])
+                    paddings=[2,2,2],
+                    max_pool_kernel_sizes=[2,2,2])
 
 def test_invalid_paddings(model):
     with pytest.raises(ValueError):
@@ -49,7 +52,18 @@ def test_invalid_paddings(model):
                     strides=[1, 2, 2],
                     output_size=10,
                     hidden_activations=[torch.relu, torch.relu, torch.relu],
-                    paddings=[2,2])
+                    paddings=[2,2],
+                    max_pool_kernel_sizes=[2,2,2])
+
+def test_invalid_max_pool_kernel_sizes(model):
+    with pytest.raises(ValueError):
+        model = CNN(convolution_layers=[3, 10, 20, 40],
+                    kernel_sizes=[3, 5, 5],
+                    strides=[1, 2, 2],
+                    output_size=10,
+                    hidden_activations=[torch.relu, torch.relu, torch.relu],
+                    paddings=[2,2,2],
+                    max_pool_kernel_sizes=[2,2])
 
 def test_invalid_experiment(model):
     with pytest.raises(ValueError):
@@ -69,7 +83,8 @@ def test_CNN(train_dataloader, output_size, output_activation):
                 strides=[1, 2, 2],
                 output_size=output_size,
                 output_activation=output_activation,
-                paddings=[2,2,2])
+                paddings=[2,2,2],
+                max_pool_kernel_sizes=[2,2,2])
     images, labels = next(iter(train_dataloader))
     output = model(images)
     # Assertions to check the output
@@ -85,7 +100,8 @@ def test_experiment_sanity(output_activation):
                 strides=[1, 2, 2],
                 output_size=10,
                 output_activation=output_activation,
-                paddings=[2,2,2])
+                paddings=[2,2,2],
+                max_pool_kernel_sizes=[2,2,2])
     exp = Experiment(model=model,
                      criterion=torch.nn.CrossEntropyLoss(),
                      batch_size=100,
