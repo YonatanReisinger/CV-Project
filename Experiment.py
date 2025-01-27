@@ -116,12 +116,14 @@ class Experiment:
         kernel_sizes = [layer.kernel_size[0] for layer in self.model.hidden]
         strides = [layer.stride[0] for layer in self.model.hidden]
         paddings = [layer.padding[0] for layer in self.model.hidden]
+        max_pool_kernel_sizes = [layer.kernel_size for layer in self.model.max_pool_list]
         # Prepare data for DataFrame
         data = {
             "Convolution Layers": str(layers),
             "Kernels Sizes": str(kernel_sizes),
             "Strides": str(strides),
             "Paddings": str(paddings),
+            "Pooling Kernel Sizes": str(max_pool_kernel_sizes),
             "Convolution Activations": str([act.__name__ for act in self.model.activations]),
             "Output Function": self.model.output_activation.__name__ if self.model.output_activation else None,
             "Output Size": self.model.output_size,

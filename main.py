@@ -122,8 +122,8 @@ def experiment_architectures_with_depth_4_new():
                              momentum=0.2,
                              probability = 1)
 
-def load_experiments(directory="."):
-    pkl_files = [f for f in os.listdir(directory) if f.endswith(".pkl") and f.startswith("Experiment_5_")]
+def load_experiments(directory=".", starts_with="Experiment"):
+    pkl_files = [f for f in os.listdir(directory) if f.endswith(".pkl") and f.startswith(starts_with)]
     loaded_data = {}
 
     for pkl_file in pkl_files:
@@ -415,4 +415,4 @@ if __name__ == '__main__':
     # exp = Experiment.from_pickle("Experiment_7_81.88_2025-01-27_16:28_SGD.pkl")
     # exp.plot_loss()
     # print(exp)
-    load_experiments()
+    load_experiments(starts_with="Experiment_6_")
