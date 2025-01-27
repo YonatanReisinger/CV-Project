@@ -356,25 +356,3 @@ def experiment6_6():
     exp()
     exp.to_pickle()
     print(exp)
-
-def experiment6_7():
-    # smaller batch size
-    model = CNN(convolution_layers=[3, 32, 64, 128],
-                kernel_sizes=[5, 5, 5],
-                strides=[1, 1, 1],
-                paddings=[2, 2, 2],
-                max_pool_kernel_sizes=[2, 2, 2],
-                output_size=10,
-                p_conv=0.2,
-                p_fc=0.5)
-    exp = Experiment(model=model,
-                     criterion=torch.nn.CrossEntropyLoss(),
-                     batch_size=64,
-                     epochs=200,
-                     lr=0.1,
-                     momentum=0.2,
-                     optimizer_name="SGD")
-
-    exp()
-    exp.to_pickle()
-    print(exp)
