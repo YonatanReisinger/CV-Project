@@ -78,7 +78,7 @@ class Experiment:
             train_size = len(dataset) - val_size
             train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
             # TODO: Try shuffle=False here after !!!!!!!
-            self.train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+            self.train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
             # TODO:before it was True, change after to True here as well !!!!!!!!!!!!!!
             self.val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
             self.test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
@@ -116,21 +116,25 @@ class Experiment:
         kernel_sizes = [layer.kernel_size[0] for layer in self.model.hidden]
         strides = [layer.stride[0] for layer in self.model.hidden]
         paddings = [layer.padding[0] for layer in self.model.hidden]
+        max_pool_kernel_sizes = [layer.kernel_size for layer in self.model.max_pool_list]
         # Prepare data for DataFrame
         data = {
             "Convolution Layers": str(layers),
             "Kernels Sizes": str(kernel_sizes),
             "Strides": str(strides),
             "Paddings": str(paddings),
+            "Pooling Kernel Sizes": str(max_pool_kernel_sizes),
             "Convolution Activations": str([act.__name__ for act in self.model.activations]),
             "Output Function": self.model.output_activation.__name__ if self.model.output_activation else None,
             "Output Size": self.model.output_size,
             "Optimizer": self.optimizer.__class__.__name__,
-            "Momentum": self.momentum,
+            "Momentum": self.momentum if hasattr(self, 'momentum') else 0,
             "Criterion": self.criterion.__class__.__name__,
             "Epochs": self.epochs,
             "Learning Rate": self.lr,
-            "Batch Size": self.batch_size
+            "Batch Size": self.batch_size,
+            "Convolution Dropout": str(self.model.convolution_dropout.p) if hasattr(self.model, 'convolution_dropout') else 0,
+            "Fully Connected Dropout": str(self.model.fully_connected_layer_dropout.p) if hasattr(self.model, 'fully_connected_layer_dropout') else 0
         }
 
         # Convert to DataFrame, setting the parameter descriptions as the index

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from typing import List, Callable
 
-class CNN(nn.Module):
+class CNN_V2(nn.Module):
 
     DEFAULT_HIDDEN_ACTIVATION_FUNC = torch.relu
 
@@ -18,7 +18,7 @@ class CNN(nn.Module):
                  hidden_activations: List[Callable]=None,
                  output_activation: Callable=None):
 
-        super(CNN, self).__init__()
+        super(CNN_V2, self).__init__()
 
         # Initialize hidden activation functions with a default if not provided
         if hidden_activations is None:
@@ -50,18 +50,18 @@ class CNN(nn.Module):
         # Init fully connected layers
         # Hidden layer 1
         self.fully_connected_layer_1 = None # Placeholder for the fully connected layer, initialized dynamically
-        self.fully_connected_layer_1_bn = nn.BatchNorm1d(1000)
+        self.fully_connected_layer_1_bn = nn.BatchNorm1d(1024)
         # Hidden layer 2
-        self.fully_connected_layer_2 = nn.Linear(1000, 1000)
-        self.fully_connected_layer_2_bn = nn.BatchNorm1d(1000)
+        self.fully_connected_layer_2 = nn.Linear(1024, 512)
+        self.fully_connected_layer_2_bn = nn.BatchNorm1d(512)
         # Hidden layer 3
-        self.fully_connected_layer_3 = nn.Linear(1000, 1000)
-        self.fully_connected_layer_3_bn = nn.BatchNorm1d(1000)
+        self.fully_connected_layer_3 = nn.Linear(512, 256)
+        self.fully_connected_layer_3_bn = nn.BatchNorm1d(256)
         # Hidden layer 4
-        self.fully_connected_layer_4 = nn.Linear(1000, 1000)
-        self.fully_connected_layer_4_bn = nn.BatchNorm1d(1000)
+        self.fully_connected_layer_4 = nn.Linear(256, 128)
+        self.fully_connected_layer_4_bn = nn.BatchNorm1d(128)
         # Final layer
-        self.fully_connected_layer_5 = nn.Linear(1000, self.output_size)
+        self.fully_connected_layer_5 = nn.Linear(128, self.output_size)
         self.fully_connected_layer_5_bn = nn.BatchNorm1d(self.output_size)
 
     def forward(self, x):
@@ -75,7 +75,7 @@ class CNN(nn.Module):
 
         if self.fully_connected_layer_1 is None:
             flattened_size = x.view(x.size(0), -1).size(1)
-            self.fully_connected_layer_1 = nn.Linear(flattened_size, 1000)
+            self.fully_connected_layer_1 = nn.Linear(flattened_size, 1024)
 
         x = x.view(x.size(0), -1)
         x = self.fully_connected_layer_1(x)
