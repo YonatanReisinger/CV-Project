@@ -117,7 +117,7 @@ class Experiment:
         kernel_sizes = [layer.kernel_size[0] for layer in self.model.hidden]
         strides = [layer.stride[0] for layer in self.model.hidden]
         paddings = [layer.padding[0] for layer in self.model.hidden]
-        max_pool_kernel_sizes = [layer.kernel_size for layer in self.model.max_pool_list]
+        max_pool_kernel_sizes = [layer.kernel_size for layer in self.model.max_pool_list] if hasattr(self.model, 'max_pool_list') else None
         # Prepare data for DataFrame
         data = {
             "Convolution Layers": str(layers),
@@ -146,9 +146,12 @@ class Experiment:
         result += "   --- Hyper Parameters ---\n"
         result += str(df) + "\n"
         result += "   --- Intermediate Results ---\n"
-        result += f"Average Training Loss: {sum(self.TRAIN_LOSS) / len(self.TRAIN_LOSS):.2f}\n"
-        result += f"Average Validation Loss: {sum(self.VAL_LOSS) / len(self.VAL_LOSS):.2f}\n"
-        result += f"Average Validation Score: {sum(self.val_scores) / len(self.val_scores):.2f}\n"
+        if hasattr(self, 'TRAIN_LOSS'):
+            result += f"Average Training Loss: {sum(self.TRAIN_LOSS) / len(self.TRAIN_LOSS):.2f}\n"
+        if hasattr(self, 'VAL_LOSS'):
+            result += f"Average Validation Loss: {sum(self.VAL_LOSS) / len(self.VAL_LOSS):.2f}\n"
+        if hasattr(self, 'val_scores'):
+            result += f"Average Validation Score: {sum(self.val_scores) / len(self.val_scores):.2f}\n"
         result += "   --- Final Score ---\n"
         result += f"{f'{self.score:.2f}' if self.score is not None else 'Not Evaluated'}"
         return result
