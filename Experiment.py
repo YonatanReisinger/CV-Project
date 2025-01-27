@@ -70,6 +70,29 @@ class Experiment:
                  test: DataLoader=None):
 
         self.model = model
+        self.train_loader = self.val_loader = self.test_loader = None
+        self._init_data_loaders(batch_size, transform, train, val, test)
+        self.criterion = criterion
+        self.lr = lr
+        self.momentum = momentum
+        self.batch_size = batch_size
+        self.epochs = epochs
+        self.TRAIN_LOSS = None
+        self.VAL_LOSS = None
+        self.val_scores = None
+        self.score = None
+        self.average_loss = None
+        self.models_states = None
+        self.optimizer = None
+        self._init_optimizer(lr, optimizer_name, momentum)
+
+    def _init_data_loaders(self,
+                           batch_size: int,
+                           transform: Callable,
+                           train: DataLoader,
+                           val: DataLoader,
+                           test: DataLoader):
+
         if train is None or val is None or test is None:
             dataset = datasets.CIFAR10(root='./data', train=True, transform=transform, download=True)
             test_dataset = datasets.CIFAR10(root='./data', train=False, transform=transform, download=True)
@@ -88,21 +111,11 @@ class Experiment:
             self.val_loader = val
             self.test_loader = test
 
-        self.criterion = criterion
-        self.lr = lr
-        self.momentum = momentum
-        self.batch_size = batch_size
-        self.epochs = epochs
-        self.TRAIN_LOSS = None
-        self.VAL_LOSS = None
-        self.val_scores = None
-        self.score = None
-        self.average_loss = None
-        self.models_states = None
+    def _init_optimizer(self, lr: float, optimizer_name: str, momentum: float):
         if optimizer_name == "SGD":
-            self.optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+            self.optimizer = optim.SGD(self.model.parameters(), lr=lr, momentum=momentum)
         elif optimizer_name == "Adam":
-            self.optimizer = optim.Adam(model.parameters(), lr=lr)
+            self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
         else:
             raise ValueError("Optimizer has to be SGD or Adam")
 

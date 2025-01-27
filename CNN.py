@@ -31,12 +31,24 @@ class CNN(nn.Module):
         self.output_size = output_size
         self.convolution_dropout = nn.Dropout(p=p_conv)
         self.fully_connected_layer_dropout = nn.Dropout(p=p_fc)
-
-        # Init convolution layers
         self.hidden = nn.ModuleList()
         self.convolution_bns = nn.ModuleList()
+        self._init_convolution_layers(convolution_layers, kernel_sizes, strides, paddings)
         self.max_pool_list = nn.ModuleList()
-        for input_size, hidden_output_size, kernel_size, stride, padding in zip(convolution_layers, convolution_layers[1:], kernel_sizes, strides, paddings):
+        self._init_pooling_kernel_sizes(max_pool_kernel_sizes)
+        self._init_fully_connected_layers()
+
+    def _init_convolution_layers(self,
+                                 convolution_layers: List[int],
+                                 kernel_sizes: List[int],
+                                 strides: List[int],
+                                 paddings: List[int]):
+
+        for input_size, hidden_output_size, kernel_size, stride, padding in zip(convolution_layers,
+                                                                                convolution_layers[1:],
+                                                                                kernel_sizes,
+                                                                                strides,
+                                                                                paddings):
             self.hidden.append(nn.Conv2d(in_channels=input_size,
                                          out_channels=hidden_output_size,
                                          kernel_size=kernel_size,
@@ -44,12 +56,13 @@ class CNN(nn.Module):
                                          padding=padding))
             self.convolution_bns.append(nn.BatchNorm2d(hidden_output_size))
 
+    def _init_pooling_kernel_sizes(self, max_pool_kernel_sizes: List[int]):
         for max_pool_kernel_size in max_pool_kernel_sizes:
             self.max_pool_list.append(nn.MaxPool2d(kernel_size=max_pool_kernel_size))
 
-        # Init fully connected layers
+    def _init_fully_connected_layers(self):
         # Hidden layer 1
-        self.fully_connected_layer_1 = None # Placeholder for the fully connected layer, initialized dynamically
+        self.fully_connected_layer_1 = None  # Placeholder for the fully connected layer, initialized dynamically
         self.fully_connected_layer_1_bn = nn.BatchNorm1d(1000)
         # Hidden layer 2
         self.fully_connected_layer_2 = nn.Linear(1000, 1000)
@@ -64,8 +77,18 @@ class CNN(nn.Module):
         self.fully_connected_layer_5 = nn.Linear(1000, self.output_size)
         self.fully_connected_layer_5_bn = nn.BatchNorm1d(self.output_size)
 
-    def forward(self, x):
-        for convolution, convolution_bn, activation, max_pool in zip(self.hidden, self.convolution_bns, self.activations, self.max_pool_list):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self._convolution_layers_forward(x)
+        self._init_first_fully_connected_layer(x)
+        x = x.view(x.size(0), -1)
+        x = self._fully_connected_layers_forward(x)
+
+        return self._return_output(x)
+
+    def _convolution_layers_forward(self, x: torch.Tensor) -> torch.Tensor:
+
+        for convolution, convolution_bn, activation, max_pool in zip(self.hidden, self.convolution_bns,
+                                                                     self.activations, self.max_pool_list):
             # TODO: maybe first one does not need relu because pixels are positive ???
             x = convolution(x)
             x = convolution_bn(x)
@@ -73,11 +96,14 @@ class CNN(nn.Module):
             x = max_pool(x)
             x = self.convolution_dropout(x)
 
+        return x
+
+    def _init_first_fully_connected_layer(self, x: torch.Tensor) -> None:
         if self.fully_connected_layer_1 is None:
             flattened_size = x.view(x.size(0), -1).size(1)
             self.fully_connected_layer_1 = nn.Linear(flattened_size, 1000)
 
-        x = x.view(x.size(0), -1)
+    def _fully_connected_layers_forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.fully_connected_layer_1(x)
         x = self.fully_connected_layer_1_bn(x)
         x = self.fully_connected_layer_dropout(x)
@@ -100,6 +126,10 @@ class CNN(nn.Module):
 
         x = self.fully_connected_layer_5(x)
         x = self.fully_connected_layer_5_bn(x)
+
+        return x
+
+    def _return_output(self, x: torch.Tensor) -> torch.Tensor:
         if self.output_activation is None:
             return x
         elif getattr(self.output_activation, "__name__", None) == "softmax":
@@ -133,5 +163,5 @@ class CNN(nn.Module):
             raise ValueError("Output activation must be a function")
         if p_conv > 1 or p_conv < 0 or p_fc > 1 or p_fc < 0:
             raise ValueError("P must be a probability between 0 and 1")
-        if output_size < 0 or not isinstance(output_size, int):
+        if output_size <= 0 or not isinstance(output_size, int):
             raise ValueError("Output size must be an int larger than 0")
