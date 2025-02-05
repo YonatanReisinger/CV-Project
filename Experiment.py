@@ -9,16 +9,22 @@ import pickle
 import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 def train(optimizer, epochs, model, train_loader, val_loader, criterion) -> Tuple[List[float], List[float], List[float], List[Dict[str, torch.Tensor]]]:
     TRAIN_LOSS = []
     VAL_LOSS = []
     val_scores = []
     models_states = []
+    my_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(my_device)
 
     for epoch in range(epochs):
         total_loss_in_epoch = 0
-        for data, target in train_loader:
+        progress_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}", leave=False)
+        for data, target in progress_bar:
+            data = data.to(my_device)
+            target = target.to(my_device)
             model.train()
             optimizer.zero_grad()
             output = model(data)
@@ -42,9 +48,13 @@ def accuracy(net, test_loader, criterion) -> Tuple[float, float]:
     correct = 0
     total = 0
     total_loss = 0
+    # Ensure the model's parameters are on the same device
+    my_device = next(net.parameters()).device
 
     with torch.no_grad():
         for data, target in test_loader:
+            data = data.to(my_device)
+            target = target.to(my_device)
             outputs = net(data)
             outputs = outputs.squeeze()
             predicted = outputs.max(dim=1).indices
@@ -64,14 +74,15 @@ class Experiment:
                  lr: float,
                  optimizer_name: str,
                  momentum: float = 0,
-                 transform: Callable = transforms.ToTensor(),
+                 training_transform: Callable = transforms.ToTensor(),
+                 test_transform: Callable = transforms.ToTensor(),
                  train: DataLoader=None,
                  val: DataLoader = None,
                  test: DataLoader=None):
 
         self.model = model
         self.train_loader = self.val_loader = self.test_loader = None
-        self._init_data_loaders(batch_size, transform, train, val, test)
+        self._init_data_loaders(batch_size, training_transform, test_transform, train, val, test)
         self.criterion = criterion
         self.lr = lr
         self.momentum = momentum
@@ -88,14 +99,15 @@ class Experiment:
 
     def _init_data_loaders(self,
                            batch_size: int,
-                           transform: Callable,
+                           training_transform: Callable,
+                           test_transform: Callable,
                            train: DataLoader,
                            val: DataLoader,
                            test: DataLoader):
 
         if train is None or val is None or test is None:
-            dataset = datasets.CIFAR10(root='./data', train=True, transform=transform, download=True)
-            test_dataset = datasets.CIFAR10(root='./data', train=False, transform=transform, download=True)
+            dataset = datasets.CIFAR10(root='./data', train=True, transform=training_transform, download=True)
+            test_dataset = datasets.CIFAR10(root='./data', train=False, transform=test_transform, download=True)
 
             # Split training dataset into train and validation
             val_size = int(len(dataset) * 0.1)
